@@ -19,30 +19,6 @@ global go_0kos.WriteText2
 
 SECTION .text
 
-; Сравнение 32-битных блоков памяти
-global runtime.memequal32..f
-runtime.memequal32..f:
-    push ebp
-    mov ebp, esp
-    
-    ; Получаем указатели на два блока памяти
-    mov esi, [ebp+8]      ; Указатель на первый блок
-    mov edi, [ebp+12]     ; Указатель на второй блок
-    mov ecx, [ebp+16]     ; Размер блока (в байтах)
-    
-    ; Важно: Сравниваем блоки по 4 байта (32-бит)
-    cld                     ; Очищаем флаг направления для побайтовых операций
-    repe cmpsd              ; Сравниваем 4 байта за раз (по 32 бита)
-    
-    ; Если все байты одинаковы, возвращаем 0 (равны)
-    setz al
-    movzx eax, al           ; Возвращаем 0 или 1 в eax (0 — блоки равны)
-    
-    ; Возвращаем результат
-    mov esp, ebp
-    pop ebp
-    ret
-
 ; Сравнение 8-битных блоков памяти
 global runtime.memequal8..f
 runtime.memequal8..f:

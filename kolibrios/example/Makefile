@@ -1,7 +1,8 @@
 PROGRAM=example
-OBJS=../syscalls.o colors.go.o colors.gox ../kos.go.o ../kos.gox $(PROGRAM).go.o
+OBJS=../syscalls.o ../runtime.gcc.o colors.go.o colors.gox ../kos.go.o ../kos.gox $(PROGRAM).go.o
 GOFLAGS=-m32 -c -nostdlib -nostdinc -fno-stack-protector -fno-split-stack -static -fno-leading-underscore -fno-common -fno-pie -g -I.
 GO=gccgo
+GCC=gcc
 ASFLAGS=-g -f elf32 -F dwarf
 NASM=nasm $(ASFLAGS)
 OBJCOPY=objcopy
@@ -23,6 +24,9 @@ link:
 
 %.go.o: %.go
 	$(GO) $(GOFLAGS) -o $@ -c $<
+	
+%.gcc.o: %.c
+	$(GCC) -m32 -c $< -o $@
 
 %.o: %.asm
 	$(NASM) $<

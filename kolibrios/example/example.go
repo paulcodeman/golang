@@ -29,8 +29,10 @@ func (button *Button) make() {
 }
 
 func RedrawAll(bar_pos int) {
+	
+	
 	kos.Redraw(1)
-	kos.Window(500, 250, 420, 200, "Example GoLang")
+	kos.Window(500, 250, 420, 200, "test")
 	kos.DrawLine(32, 80, 150, 80, colors.Green)
 	kos.DrawBar(bar_pos, 90, 100, 30, colors.Red)
 
@@ -51,9 +53,9 @@ func RedrawAll(bar_pos int) {
 
 func Main() {
 	var pos = 160
-	time := kos.GetTime()
-	kos.DebugOutStr("Time: ")
-	kos.DebugOutHex(time)
+	// time := kos.GetTime()
+	// kos.DebugOutStr("Time: ")
+	// kos.DebugOutHex(time)
 	for {
 		switch kos.Event() {
 		case kos.EVENT_REDRAW:

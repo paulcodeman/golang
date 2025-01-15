@@ -6,7 +6,7 @@ GCC=gcc
 ASFLAGS=-g -f elf32 -F dwarf
 NASM=nasm $(ASFLAGS)
 OBJCOPY=objcopy
-LDFLAGS=-n -T static.lds -m elf_i386 --no-ld-generated-unwind-info
+LDFLAGS=-n -T static.lds -m elf_i386 --no-ld-generated-unwind-info -z noexecstack
 
 .PHONY: all clean link
 

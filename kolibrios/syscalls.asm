@@ -19,70 +19,6 @@ global go_0kos.WriteText2
 
 SECTION .text
 
-; Сравнение 8-битных блоков памяти
-global runtime.memequal8..f
-runtime.memequal8..f:
-    push ebp
-    mov ebp, esp
-    
-    ; Получаем указатели на два блока памяти
-    mov esi, [ebp+8]      ; Указатель на первый блок
-    mov edi, [ebp+12]     ; Указатель на второй блок
-    mov ecx, [ebp+16]     ; Размер блока (в байтах)
-    
-    ; Сравниваем блоки по 1 байту (8-бит)
-    cld                     ; Очищаем флаг направления для побайтовых операций
-    repe cmpsb              ; Сравниваем 1 байт за раз (по 8 бит)
-    
-    ; Если все байты одинаковы, возвращаем 0 (равны)
-    setz al
-    movzx eax, al           ; Возвращаем 0 или 1 в eax (0 — блоки равны)
-    
-    ; Возвращаем результат
-    mov esp, ebp
-    pop ebp
-    ret
-
-; Универсальное сравнение памяти (для любых блоков)
-global runtime.memequal
-runtime.memequal:
-    push ebp
-    mov ebp, esp
-    
-    ; Получаем указатели на два блока памяти
-    mov esi, [ebp+8]      ; Указатель на первый блок
-    mov edi, [ebp+12]     ; Указатель на второй блок
-    mov ecx, [ebp+16]     ; Размер блока (в байтах)
-    
-    ; В случае меньших блоков (меньше 4 байт) будем сравнивать побайтово
-    cmp ecx, 4
-    jl compare_byte
-    
-    ; Сравнение блоков по 4 байта (32-бит) если размер >= 4
-    cld                     ; Очищаем флаг направления для побайтовых операций
-    repe cmpsd              ; Сравниваем 4 байта за раз (по 32 бита)
-    
-    ; Если все блоки одинаковы, возвращаем 0 (равны)
-    setz al
-    movzx eax, al           ; Возвращаем 0 или 1 в eax (0 — блоки равны)
-    jmp end_memequal
-
-compare_byte:
-    ; Сравнение блоков по 1 байту (8-бит)
-    cld                     ; Очищаем флаг направления для побайтовых операций
-    repe cmpsb              ; Сравниваем 1 байт за раз (по 8 бит)
-    
-    ; Если все байты одинаковы, возвращаем 0 (равны)
-    setz al
-    movzx eax, al           ; Возвращаем 0 или 1 в eax (0 — блоки равны)
-    
-end_memequal:
-    ; Возвращаем результат
-    mov esp, ebp
-    pop ebp
-    ret
-
-
 global go_0kos.SetByteString
 go_0kos.SetByteString:
   push ebp
@@ -95,144 +31,6 @@ go_0kos.SetByteString:
   mov esp, ebp
   pop ebp
   ret
-
-global __go_runtime_error
-global __go_register_gc_roots
-global __unsafe_get_addr
-
-__unsafe_get_addr:
-  push ebp
-  mov ebp, esp
-  mov eax, [ebp+8]
-  mov esp, ebp
-  pop ebp
-  ret
-
-__go_register_gc_roots:
-__go_runtime_error:
-  ret
-
-global runtime.concatstrings
-runtime.concatstrings:
-    ; Считаем общую длину обеих строк
-    add esi, ecx           ; Общая длина = длина первой строки + длина второй
-    mov ebx, esi           ; Запоминаем общую длину в ebx
-
-    ; Выделим память для результата
-    ; (Будет использоваться системный вызов для выделения памяти в KolibriOS)
-    mov eax, 68            ; Номер функции для выделения памяти
-    mov ecx, ebx           ; Требуемый размер памяти в байтах
-	mov ebx, 12            ; Номер подфункции
-    int 0x40               ; Вызов системного вызова
-    mov ebx, eax           ; Сохраняем указатель на выделенную память (ebx — 32-битная версия)
-
-    ; Копируем первую строку в результат
-    mov edi, ebx           ; Указатель на результат
-    mov esi, [esp+4]       ; Указатель на первую строку
-    mov ecx, [esp+8]       ; Длина первой строки
-copy_str1:
-    mov al, [esi]          ; Загружаем байт из первой строки
-    test al, al            ; Проверяем конец строки
-    jz done_copy_str1
-    mov [edi], al          ; Записываем байт в результат
-    inc esi                ; Переходим к следующему символу
-    inc edi                ; Переходим к следующей ячейке результата
-    loop copy_str1
-
-done_copy_str1:
-
-    ; Копируем вторую строку в результат
-    mov edi, ebx           ; Указатель на результат
-    add edi, ebx           ; Переходим к концу первой строки
-    mov esi, [esp+12]      ; Указатель на вторую строку
-    mov ecx, [esp+16]      ; Длина второй строки
-copy_str2:
-    mov al, [esi]          ; Загружаем байт из второй строки
-    test al, al            ; Проверяем конец строки
-    jz done_copy_str2
-    mov [edi], al          ; Записываем байт в результат
-    inc esi                ; Переходим к следующему символу
-    inc edi                ; Переходим к следующей ячейке результата
-    loop copy_str2
-
-done_copy_str2:
-
-    ; Завершаем строку нулевым байтом
-    mov byte [edi], 0
-
-    ; Возвращаем указатель на результат
-    mov eax, ebx           ; Указатель на объединённую строку
-    ret
-
-
-global runtime.writeBarrier
-global runtime.gcWriteBarrier
-runtime.writeBarrier:
-    mov eax, [esp+8]
-    mov ebx, [esp+12]
-    mov dword[eax], ebx
-    ret
-
-global runtime.strequal..f
-runtime.strequal..f:
-    mov eax, [esp+8]      ; Первый указатель
-    mov ebx, [esp+16]     ; Второй указатель
-    mov ecx, 0            ; Индекс для прохода по строкам
-strcmp_loop:
-    mov byte dl, [eax+ecx]
-    mov byte dh, [ebx+ecx]
-    inc ecx
-    cmp dl, 0
-    je strcmp_end_0       ; Окончание строки
-    cmp byte dl, dh
-    je strcmp_loop        ; Сравнение продолжается
-    jl strcmp_end_1       ; Если строки разные
-    jg strcmp_end_2
-strcmp_end_0:
-    cmp dh, 0
-    jne strcmp_end_1
-    xor ecx, ecx          ; Строки равны
-    ret
-strcmp_end_1:
-    mov ecx, 1            ; Строки не равны
-    ret
-strcmp_end_2:
-    mov ecx, -1           ; Строки различны
-    ret
-
-runtime.gcWriteBarrier:
-    mov eax, [esp+8]
-    mov ebx, [esp+12]
-    mov dword[eax], ebx
-    ret
-
-global runtime.goPanicIndex
-runtime.goPanicIndex:
-    ret
-
-global runtime.registerGCRoots
-runtime.registerGCRoots:
-    ret
-
-global memcmp
-memcmp:
-    push ebp
-    mov ebp,esp
-    mov     esi, [ebp+8]    ; Move first pointer to esi
-    mov     edi, [ebp+12]    ; Move second pointer to edi
-    mov     ecx, [ebp+16]    ; Move length to ecx
-
-    cld                         ; Clear DF, the direction flag, so comparisons happen
-                                ; at increasing addresses
-    cmp     ecx, ecx            ; Special case: If length parameter to memcmp is
-                                ; zero, don't compare any bytes.
-    repe cmpsb                  ; Compare bytes at DS:ESI and ES:EDI, setting flags
-                                ; Repeat this while equal ZF is set
-    setz    al
-    mov esp,ebp
-    pop ebp
-    ret
-
 
 go_0kos.Sleep:
     push ebp
@@ -424,6 +222,35 @@ go_0kos.CreateButton:
   mov   esp,ebp
   pop   ebp
   ret
+
+global malloc
+global free
+global realloc
+
+malloc:
+    ; Номер системного вызова mmap (90)
+    mov eax, 68       ; mmap
+    mov ebx, 12        ; адрес (NULL)
+    mov ecx, [esp+4]  ; размер памяти (параметр, переданный через стек)
+    int 0x40          ; вызов системного вызова
+    ret
+	
+free:
+    ; Номер системного вызова mmap (90)
+    mov eax, 68       ; mmap
+    mov ebx, 13        ; адрес (NULL)
+    mov ecx, [esp+4]  ; размер памяти (параметр, переданный через стек)
+    int 0x40          ; вызов системного вызова
+    ret
+	
+realloc:
+    ; Номер системного вызова mmap (90)
+    mov eax, 68       ; mmap
+    mov ebx, 13        ; адрес (NULL)
+    mov edx, [esp+4] ; указатель на старую память
+	mov ecx, [esp+8] ; новый размер памяти
+    int 0x40          ; вызов системного вызова
+    ret
 
 ; Описание данных
 SECTION .data

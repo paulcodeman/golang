@@ -29,10 +29,15 @@ func (button *Button) make() {
 }
 
 func RedrawAll(bar_pos int) {
-	
+	// Объявляем две строки
+    str1 := "test1"
+    str2 := "test2"
+
+    // Сложение строк
+    result := str1 + str2
 	
 	kos.Redraw(1)
-	kos.Window(500, 250, 420, 200, "test")
+	kos.Window(500, 250, 420, 200, result)
 	kos.DrawLine(32, 80, 150, 80, colors.Green)
 	kos.DrawBar(bar_pos, 90, 100, 30, colors.Red)
 

@@ -138,6 +138,23 @@ int strcmp(const char *str1, const char *str2) {
     return *(unsigned char *)str1 - *(unsigned char *)str2;
 }
 
+char *strcat(char *dest, const char *src) {
+    // Находим конец первой строки
+    while (*dest) {
+        dest++;  // Перемещаем указатель по первой строке
+    }
+
+    // Копируем вторую строку в конец первой
+    while (*src) {
+        *dest = *src;  // Копируем символ
+        dest++;         // Переходим к следующей позиции в первой строке
+        src++;          // Переходим к следующему символу во второй строке
+    }
+
+    *dest = '\0';  // Завершаем строку нулевым символом
+    return dest;  // Возвращаем указатель на начало первой строки
+}
+
 void *memcpy(void *dest, const void *src, size_t n) {
     char *d = (char *)dest;
     const char *s = (const char *)src;

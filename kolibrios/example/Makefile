@@ -1,8 +1,8 @@
 PROGRAM = example
-GO_COMPILER_FLAGS = -m32 -c -nostdlib -nostdinc -fno-stack-protector -fno-split-stack -static -fno-leading-underscore -fno-common -fno-pie -g -I.
-GCC_COMPILER_FLAGS = -m32 -c
+GO_COMPILER_FLAGS = -m32 -c -nostdlib -nostdinc -fno-stack-protector -fno-split-stack -static -fno-leading-underscore -fno-common -fno-pie -g -ffunction-sections -fdata-sections -I.
+GCC_COMPILER_FLAGS = -m32 -c -ffunction-sections -fdata-sections
 ASM_COMPILER_FLAGS = -g -f elf32 -F dwarf
-LDFLAGS = -n -T static.lds -m elf_i386 --no-ld-generated-unwind-info -z noexecstack -z relro -z now
+LDFLAGS = -n -T static.lds -m elf_i386 --no-ld-generated-unwind-info -z noexecstack -z relro -z now --gc-sections --entry=go_0example.Main
 GO = gccgo
 GCC = gcc
 NASM = nasm $(ASM_COMPILER_FLAGS)
@@ -18,6 +18,7 @@ clean:
 
 link:
 	ld $(LDFLAGS) -o $(PROGRAM).kex $(OBJS)
+	strip $(PROGRAM).kex
 	$(OBJCOPY) $(PROGRAM).kex -O binary
 
 # Правила для компиляции .go в .go.o
